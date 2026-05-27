@@ -1,121 +1,549 @@
-#code for python IDLE  <<-----
+# ==========================================
+# PYTHON MINI IDLE / IDE
+# ==========================================
+
 import tkinter as tk
-import os, subprocess, re
-##from tkinter.filedialog import askopenfilename, asksavefilename 
-t=tk.Tk()
-# t.geometry("900x750")
-# textbox=tk.Text(t,font=("arial", 14), width=85, height=20,bg="white",fg="darkblue")
-# textbox.place(x=0,y=0)
-# console=tk.Text(t,state="disabled", font=("fixedsys", 16, "bold"), insertbackground="red", width=90, height=12,bg="black",fg="lightgreen")
-# console.place(x=0,y=500)
+import os
+import subprocess
+import re
+import threading
+
+# ==========================================
+# WINDOW
+# ==========================================
+
+t = tk.Tk()
+
 t.state("zoomed")
-t.title("Pythonspace for practice")
-# Textbox
+
+t.title("PythonSpace IDE")
+
+t.configure(bg="#050510")
+
+# ==========================================
+# EDITOR
+# ==========================================
+
 textbox = tk.Text(
+
     t,
-    font=("arial", 14),
-    fg="gold",
-    bg="darkblue"
+
+    font=("Consolas", 15),
+
+    fg="white",
+
+    bg="#0f172a",
+
+    insertbackground="cyan",
+
+    undo=True,
+
+    padx=10,
+
+    pady=10
+
 )
 
 textbox.place(
+
     x=0,
+
     y=0,
+
     relwidth=1,
-    relheight=0.7
+
+    relheight=0.70
+
 )
 
-# Console
+# ==========================================
+# CONSOLE
+# ==========================================
+
 console = tk.Text(
+
     t,
+
     state="disabled",
-    font=("fixedsys", 16, "bold"),
-    insertbackground="red",
+
+    font=("Consolas", 13),
+
     bg="black",
-    fg="lightgreen"
+
+    fg="lightgreen",
+
+    insertbackground="white"
+
 )
 
 console.place(
+
     x=0,
-    rely=0.7,
+
+    rely=0.75,
+
     relwidth=1,
-    relheight=0.3
+
+    relheight=0.20
+
 )
-if os.path.exists("test002.py"):
-    pass
-#for colon (:)
-def indenting(e):
-    wid=e.widget
-    l=wid.get("insert linestart", "insert")
-    match = re.match(r'^(\s+)', l)
-    ci=len(match.group(0)) if match else 0
-    ni=ci+1
-    wid.insert("insert", e.char+"\n"+"\t"*ni)
-    return "break"
-textbox.bind(":<Return>", indenting)
-#for enter key 
-def indentspace(e):
-    wid=e.widget
-    l=wid.get("insert linestart", "insert")
-    match = re.match(r'^(\s+)', l)
-    ci=len(match.group(0)) if match else 0
-    ni=ci+0
-    wid.insert("insert", "\n"+"\t"*ni)
-    return "break"
 
-textbox.bind("<Return>", indentspace)
-pl=14
-h=14
-w=79
-#manipulate size like in notepad  ctrl+plus, ctrl+minus
-def inc(p):
-    global pl,h,w
-    p=0
-    pl+=1
-    if pl<=28:
-        h=h-h/pl
-        w=w-w/pl
+# ==========================================
+# INPUT TERMINAL
+# ==========================================
+
+inputbox = tk.Entry(
+
+    t,
+
+    font=("Consolas", 14),
+
+    bg="#18191B",
+
+    fg="cyan",
+
+    insertbackground="white"
+
+)
+
+inputbox.place(
+
+    relx=0,
+
+    rely=0.95,
+
+    relwidth=1,
+
+    relheight=0.05
+
+)
+
+# ==========================================
+# CREATE FILE IF NOT EXISTS
+# ==========================================
+
+if not os.path.exists("test002.py"):
+
+    with open("test002.py", "w") as f:
+
+        f.write("print('Hello World')")
+
+# ==========================================
+# SMART AUTO INDENT
+# ==========================================
+
+def smart_indent(e):
+
+    wid = e.widget
+
+    line = wid.get(
+
+        "insert linestart",
+
+        "insert"
+
+    )
+
+    match = re.match(
+
+        r'^(\s*)',
+
+        line
+
+    )
+
+    current_indent = (
+
+        match.group(0)
+
+        if match else ""
+
+    )
+
+    if line.strip().endswith(":"):
+
+        wid.insert(
+
+            "insert",
+
+            "\n" +
+
+            current_indent +
+
+            "\t"
+
+        )
+
     else:
-        pl-=1
-        h=h-0
-        w=w-0
-    textbox.configure(font=("consolas", int(pl)), height=int(h),width=int(w))
-textbox.bind("<Control-equal>", inc)
 
-def dec(p):
-    global pl,h,w
-    p=0
-    pl-=1
-    if pl>=11:
-        h=h+h/pl
-        w=w+w/pl
-    else:
-        pl+=1
-        h=h+0
-        w=w+0
-    textbox.configure(font=("consolas", int(pl)), height=int(h),width=int(w))
-textbox.bind("<Control-minus>", dec)
-    
+        wid.insert(
 
-def savefile(t_file):
-    with open("test002.py", "w") as t_file:
-        t_file.write(textbox.get(1.0, tk.END))
-textbox.bind("<Control-s>", savefile)
-textbox.bind("<Control-S>", savefile)
+            "insert",
 
-def compiler(c):
-    c=0
-    os.system("python test002.py & pause>nul")
-t.bind("<F5>", compiler)
+            "\n" +
 
-def run(p):
-    p=0
-    console.configure(state="normal")
-    pr=subprocess.Popen("python test002.py", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    o, e= pr.communicate()
-    console.delete(1.0, tk.END)
-    console.insert(1.0, o)
-    console.insert(1.0, e)
-    console.configure(state="disabled")
-t.bind("<Control-F5>", run)
+            current_indent
+
+        )
+
+    return "break"
+
+textbox.bind(
+
+    "<Return>",
+
+    smart_indent
+
+)
+
+# ==========================================
+# FONT ZOOM
+# ==========================================
+
+fontsize = 15
+
+def zoom_in(e):
+
+    global fontsize
+
+    fontsize += 1
+
+    textbox.configure(
+
+        font=(
+
+            "Consolas",
+
+            fontsize
+
+        )
+
+    )
+
+    console.configure(
+
+        font=(
+
+            "Consolas",
+
+            fontsize - 1
+
+        )
+
+    )
+
+textbox.bind(
+
+    "<Control-equal>",
+
+    zoom_in
+
+)
+
+def zoom_out(e):
+
+    global fontsize
+
+    if fontsize > 10:
+
+        fontsize -= 1
+
+    textbox.configure(
+
+        font=(
+
+            "Consolas",
+
+            fontsize
+
+        )
+
+    )
+
+    console.configure(
+
+        font=(
+
+            "Consolas",
+
+            fontsize - 1
+
+        )
+
+    )
+
+textbox.bind(
+
+    "<Control-minus>",
+
+    zoom_out
+
+)
+
+# ==========================================
+# CONSOLE WRITER
+# ==========================================
+
+def write_console(text):
+
+    console.configure(
+
+        state="normal"
+
+    )
+
+    console.insert(
+
+        tk.END,
+
+        text
+
+    )
+
+    console.see(tk.END)
+
+    console.configure(
+
+        state="disabled"
+
+    )
+
+# ==========================================
+# SAVE FILE
+# ==========================================
+
+def savefile(e=None):
+
+    with open(
+
+        "test002.py",
+
+        "w",
+
+        encoding="utf-8"
+
+    ) as f:
+
+        f.write(
+
+            textbox.get(
+
+                1.0,
+
+                tk.END
+
+            )
+
+        )
+
+    write_console(
+
+        "\n[SAVED SUCCESSFULLY]\n"
+
+    )
+
+textbox.bind(
+
+    "<Control-s>",
+
+    savefile
+
+)
+
+textbox.bind(
+
+    "<Control-S>",
+
+    savefile
+
+)
+
+# ==========================================
+# PROCESS VARIABLE
+# ==========================================
+
+process = None
+
+# ==========================================
+# READ LIVE OUTPUT
+# ==========================================
+
+def read_output():
+
+    global process
+
+    while True:
+
+        output = process.stdout.readline()
+
+        if (
+
+            output == ""
+
+            and process.poll() is not None
+
+        ):
+
+            break
+
+        if output:
+
+            write_console(output)
+
+# ==========================================
+# RUN INSIDE CONSOLE
+# ==========================================
+
+def run(e=None):
+
+    global process
+
+    savefile()
+
+    console.configure(
+
+        state="normal"
+
+    )
+
+    console.delete(
+
+        1.0,
+
+        tk.END
+
+    )
+
+    console.configure(
+
+        state="disabled"
+
+    )
+
+    process = subprocess.Popen(
+
+        ["python", "test002.py"],
+
+        stdin=subprocess.PIPE,
+
+        stdout=subprocess.PIPE,
+
+        stderr=subprocess.STDOUT,
+
+        text=True,
+
+        bufsize=1
+
+    )
+
+    threading.Thread(
+
+        target=read_output,
+
+        daemon=True
+
+    ).start()
+
+t.bind(
+
+    "<Control-F5>",
+
+    run
+
+)
+
+# ==========================================
+# SEND INPUT TO PYTHON FILE
+# ==========================================
+
+def send_input(e):
+
+    global process
+
+    if process:
+
+        command = inputbox.get()
+
+        process.stdin.write(
+
+            command + "\n"
+
+        )
+
+        process.stdin.flush()
+
+        write_console(
+
+            ">>> " +
+
+            command +
+
+            "\n"
+
+        )
+
+        inputbox.delete(
+
+            0,
+
+            tk.END
+
+        )
+
+inputbox.bind(
+
+    "<Return>",
+
+    send_input
+
+)
+
+# ==========================================
+# OPEN CMD TERMINAL
+# ==========================================
+
+def open_terminal(e=None):
+
+    savefile()
+
+    os.system(
+
+        "start cmd /k python test002.py"
+
+    )
+
+t.bind(
+
+    "<F5>",
+
+    open_terminal
+
+)
+
+# ==========================================
+# DEFAULT SAMPLE CODE
+# ==========================================
+
+sample = '''
+name = input("Enter name : ")
+
+print("Hello", name)
+
+for i in range(5):
+
+    print("Number :", i)
+'''
+
+textbox.insert(
+
+    1.0,
+
+    sample
+
+)
+
+# ==========================================
+# START APP
+# ==========================================
+
 t.mainloop()
