@@ -93,11 +93,11 @@ linenumbers = tk.Text(
 
     font=("Consolas", fontsize),
 
-    bd=2,
+    bd=15,
 
     state="disabled",
 
-    padx=2
+    padx=0
 
 )
 
@@ -131,7 +131,7 @@ textbox = tk.Text(
 
     pady=0,
 
-    bd=2
+    bd=15
 
 )
 
@@ -217,7 +217,7 @@ console = tk.Text(
 
     insertbackground="white",
 
-    bd=2,
+    bd=25,
 
     padx=10,
 
@@ -268,6 +268,7 @@ console_scroll.pack(
 console.config(
 
     yscrollcommand=console_scroll.set
+    
 
 )
 
@@ -925,10 +926,15 @@ textbox.bind(
 # ==========================================
 # BUTTONS
 # ==========================================
-def nullfx():
-    pass
+# ==========================================
+# NEW PYSPACE WINDOW
+# ==========================================
+
+def newtab(e=None):
+
+    os.system("python pyspace.py")
 buttons = [
-    ("PYSPACE", nullfx, "white"),
+    ("PYSPACE", newtab, "white"),
 
     ("📂 OPEN", open_file, "#2563eb"),
 
@@ -965,6 +971,7 @@ for text, cmd, color in buttons:
 
         cursor="hand2",
         width="24"
+        
 
     )
 
@@ -981,9 +988,8 @@ for text, cmd, color in buttons:
 # ==========================================
 # SAMPLE CODE
 # ==========================================
-
-sample = '''
-print("Hello World !")
+name=os.getenv("USERNAME")
+sample = f'''print("Hello, {name}")
 '''
 
 textbox.insert(
