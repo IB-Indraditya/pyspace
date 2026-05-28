@@ -930,9 +930,18 @@ textbox.bind(
 # NEW PYSPACE WINDOW
 # ==========================================
 
+import subprocess
+import sys
+
 def newtab(e=None):
 
-    os.system("python pyspace.py")
+    subprocess.Popen(
+
+        [sys.executable, "pyspace.py"],
+
+        creationflags=subprocess.CREATE_NEW_CONSOLE
+
+    )
 buttons = [
     ("PYSPACE", newtab, "white"),
 
@@ -952,7 +961,7 @@ buttons = [
 ]
 
 for text, cmd, color in buttons:
-
+    
     btn = tk.Button(
 
         topbar,
@@ -969,9 +978,7 @@ for text, cmd, color in buttons:
 
         relief="flat",
 
-        cursor="hand2",
-        width="24"
-        
+        cursor="hand2"
 
     )
 
@@ -979,12 +986,15 @@ for text, cmd, color in buttons:
 
         side="left",
 
-        padx=10,
+        padx=3,
 
-        pady=5
+        pady=5,
+
+        fill="x",
+
+        expand=True
 
     )
-
 # ==========================================
 # SAMPLE CODE
 # ==========================================
