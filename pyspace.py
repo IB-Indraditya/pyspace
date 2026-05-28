@@ -1,12 +1,13 @@
 # ==========================================
-# PYTHON MINI IDLE / IDE
+# PYTHONSPACE IDE ULTRA
 # ==========================================
 
 import tkinter as tk
-import os
+from tkinter import filedialog, messagebox
 import subprocess
-import re
 import threading
+import os
+import re
 
 # ==========================================
 # WINDOW
@@ -16,9 +17,97 @@ t = tk.Tk()
 
 t.state("zoomed")
 
-t.title("PythonSpace IDE")
+t.title("PythonSpace IDE Ultra")
 
 t.configure(bg="#050510")
+
+# ==========================================
+# VARIABLES
+# ==========================================
+
+fontsize = 15
+
+process = None
+
+current_file = "test002.py"
+
+# ==========================================
+# TOPBAR
+# ==========================================
+
+topbar = tk.Frame(
+
+    t,
+
+    bg="#111827",
+
+    height=45
+
+)
+
+topbar.pack(
+
+    fill="x",
+
+    side="top"
+
+)
+
+# ==========================================
+# MAIN FRAME
+# ==========================================
+
+editorframe = tk.Frame(
+
+    t,
+
+    bg="#050510"
+
+)
+
+editorframe.place(
+
+    relx=0,
+
+    rely=0.05,
+
+    relwidth=1,
+
+    relheight=0.65
+
+)
+
+# ==========================================
+# LINE NUMBERS
+# ==========================================
+
+linenumbers = tk.Text(
+
+    editorframe,
+
+    width=5,
+
+    bg="#1e293b",
+
+    fg="#facc15",
+
+    font=("Consolas", fontsize),
+
+    bd=2,
+
+    state="disabled",
+
+    padx=2
+
+)
+
+linenumbers.pack(
+
+    side="left",
+
+    fill="y"
+
+)
 
 # ==========================================
 # EDITOR
@@ -26,9 +115,9 @@ t.configure(bg="#050510")
 
 textbox = tk.Text(
 
-    t,
+    editorframe,
 
-    font=("Consolas", 15),
+    font=("Consolas", fontsize),
 
     fg="white",
 
@@ -40,19 +129,55 @@ textbox = tk.Text(
 
     padx=10,
 
-    pady=10
+    pady=0,
+
+    bd=2
 
 )
 
-textbox.place(
+textbox.pack(
 
-    x=0,
+    side="left",
 
-    y=0,
+    fill="both",
 
-    relwidth=1,
+    expand=True
 
-    relheight=0.70
+)
+
+# ==========================================
+# EDITOR SCROLLBAR
+# ==========================================
+
+editor_scroll = tk.Scrollbar(
+
+    editorframe,
+
+    command=textbox.yview,
+
+    bg="#111827",
+
+    troughcolor="#050510",
+
+    activebackground="#00ffff",
+
+    relief="flat",
+
+    width=14
+
+)
+
+editor_scroll.pack(
+
+    side="right",
+
+    fill="y"
+
+)
+
+textbox.config(
+
+    yscrollcommand=editor_scroll.set
 
 )
 
@@ -60,49 +185,109 @@ textbox.place(
 # CONSOLE
 # ==========================================
 
-console = tk.Text(
+consoleframe = tk.Frame(
 
     t,
 
-    state="disabled",
-
-    font=("Consolas", 13),
-
-    bg="black",
-
-    fg="lightgreen",
-
-    insertbackground="white"
+    bg="#000000"
 
 )
 
-console.place(
+consoleframe.place(
 
-    x=0,
+    relx=0,
 
-    rely=0.75,
+    rely=0.72,
 
     relwidth=1,
 
-    relheight=0.20
+    relheight=0.23
+
+)
+
+console = tk.Text(
+
+    consoleframe,
+
+    font=("Consolas", 13),
+
+    fg="lightgreen",
+
+    bg="black",
+
+    insertbackground="white",
+
+    bd=2,
+
+    padx=10,
+
+    pady=10
+
+)
+
+console.pack(
+
+    side="left",
+
+    fill="both",
+
+    expand=True
 
 )
 
 # ==========================================
-# INPUT TERMINAL
+# CONSOLE SCROLLBAR
+# ==========================================
+
+console_scroll = tk.Scrollbar(
+
+    consoleframe,
+
+    command=console.yview,
+
+    bg="#111827",
+
+    troughcolor="#000000",
+
+    activebackground="#00ff88",
+
+    relief="flat",
+
+    width=14
+
+)
+
+console_scroll.pack(
+
+    side="right",
+
+    fill="y"
+
+)
+
+console.config(
+
+    yscrollcommand=console_scroll.set
+
+)
+
+# ==========================================
+# INPUT BOX
 # ==========================================
 
 inputbox = tk.Entry(
 
     t,
 
-    font=("Consolas", 14),
+    font=("Consolas", 13),
 
-    bg="#18191B",
+    bg="#111827",
 
     fg="cyan",
 
-    insertbackground="white"
+    insertbackground="white",
+
+    bd=10
 
 )
 
@@ -119,24 +304,128 @@ inputbox.place(
 )
 
 # ==========================================
-# CREATE FILE IF NOT EXISTS
+# CREATE FILE
 # ==========================================
 
-if not os.path.exists("test002.py"):
+if not os.path.exists(current_file):
 
-    with open("test002.py", "w") as f:
+    with open(current_file, "w") as f:
 
         f.write("print('Hello World')")
 
 # ==========================================
-# SMART AUTO INDENT
+# UPDATE LINE NUMBERS
+# ==========================================
+
+def update_lines(e=None):
+
+    linenumbers.config(state="normal")
+
+    linenumbers.delete(
+
+        1.0,
+
+        tk.END
+
+    )
+
+    total_lines = int(
+
+        textbox.index(
+
+            "end-1c"
+
+        ).split(".")[0]
+
+    )
+
+    line_text = "\n".join(
+
+        str(i)
+
+        for i in range(
+
+            1,
+
+            total_lines + 1
+
+        )
+
+    )
+
+    linenumbers.insert(
+
+        "1.0",
+
+        line_text
+
+    )
+
+    linenumbers.config(
+
+        state="disabled"
+
+    )
+
+textbox.bind(
+
+    "<KeyRelease>",
+
+    update_lines
+
+)
+
+# ==========================================
+# SYNC SCROLL
+# ==========================================
+
+def sync_scroll(*args):
+
+    textbox.yview(*args)
+
+    linenumbers.yview(*args)
+
+textbox.config(
+
+    yscrollcommand=lambda *args: (
+
+        editor_scroll.set(*args),
+
+        linenumbers.yview_moveto(args[0])
+
+    )
+
+)
+
+editor_scroll.config(
+
+    command=sync_scroll
+
+)
+
+# ==========================================
+# WRITE CONSOLE
+# ==========================================
+
+def write_console(text):
+
+    console.insert(
+
+        tk.END,
+
+        text
+
+    )
+
+    console.see(tk.END)
+
+# ==========================================
+# SMART INDENT
 # ==========================================
 
 def smart_indent(e):
 
-    wid = e.widget
-
-    line = wid.get(
+    line = textbox.get(
 
         "insert linestart",
 
@@ -152,17 +441,11 @@ def smart_indent(e):
 
     )
 
-    current_indent = (
-
-        match.group(0)
-
-        if match else ""
-
-    )
+    current_indent = match.group(0)
 
     if line.strip().endswith(":"):
 
-        wid.insert(
+        textbox.insert(
 
             "insert",
 
@@ -176,7 +459,7 @@ def smart_indent(e):
 
     else:
 
-        wid.insert(
+        textbox.insert(
 
             "insert",
 
@@ -197,118 +480,6 @@ textbox.bind(
 )
 
 # ==========================================
-# FONT ZOOM
-# ==========================================
-
-fontsize = 15
-
-def zoom_in(e):
-
-    global fontsize
-
-    fontsize += 1
-
-    textbox.configure(
-
-        font=(
-
-            "Consolas",
-
-            fontsize
-
-        )
-
-    )
-
-    console.configure(
-
-        font=(
-
-            "Consolas",
-
-            fontsize - 1
-
-        )
-
-    )
-
-textbox.bind(
-
-    "<Control-equal>",
-
-    zoom_in
-
-)
-
-def zoom_out(e):
-
-    global fontsize
-
-    if fontsize > 10:
-
-        fontsize -= 1
-
-    textbox.configure(
-
-        font=(
-
-            "Consolas",
-
-            fontsize
-
-        )
-
-    )
-
-    console.configure(
-
-        font=(
-
-            "Consolas",
-
-            fontsize - 1
-
-        )
-
-    )
-
-textbox.bind(
-
-    "<Control-minus>",
-
-    zoom_out
-
-)
-
-# ==========================================
-# CONSOLE WRITER
-# ==========================================
-
-def write_console(text):
-
-    console.configure(
-
-        state="normal"
-
-    )
-
-    console.insert(
-
-        tk.END,
-
-        text
-
-    )
-
-    console.see(tk.END)
-
-    console.configure(
-
-        state="disabled"
-
-    )
-
-# ==========================================
 # SAVE FILE
 # ==========================================
 
@@ -316,7 +487,7 @@ def savefile(e=None):
 
     with open(
 
-        "test002.py",
+        current_file,
 
         "w",
 
@@ -350,22 +521,196 @@ textbox.bind(
 
 )
 
+# ==========================================
+# OPEN FILE
+# ==========================================
+
+def open_file():
+
+    global current_file
+
+    file = filedialog.askopenfilename(
+
+        filetypes=[
+
+            ("Python Files", "*.py")
+
+        ]
+
+    )
+
+    if file:
+
+        current_file = file
+
+        with open(
+
+            file,
+
+            "r",
+
+            encoding="utf-8"
+
+        ) as f:
+
+            code = f.read()
+
+        textbox.delete(
+
+            1.0,
+
+            tk.END
+
+        )
+
+        textbox.insert(
+
+            1.0,
+
+            code
+
+        )
+
+        update_lines()
+
+# ==========================================
+# EXPORT FILE
+# ==========================================
+
+def export_file():
+
+    file = filedialog.asksaveasfilename(
+
+        defaultextension=".py",
+
+        filetypes=[
+
+            ("Python Files", "*.py")
+
+        ]
+
+    )
+
+    if file:
+
+        with open(
+
+            file,
+
+            "w",
+
+            encoding="utf-8"
+
+        ) as f:
+
+            f.write(
+
+                textbox.get(
+
+                    1.0,
+
+                    tk.END
+
+                )
+
+            )
+
+        messagebox.showinfo(
+
+            "Export",
+
+            "File Exported Successfully"
+
+        )
+
+# ==========================================
+# CLEAR CONSOLE
+# ==========================================
+
+def clear_console():
+
+    console.delete(
+
+        1.0,
+
+        tk.END
+
+    )
+
+# ==========================================
+# COMMENT FEATURE
+# ==========================================
+
+def toggle_comment(e=None):
+
+    try:
+
+        start = textbox.index(
+
+            "sel.first linestart"
+
+        )
+
+        end = textbox.index(
+
+            "sel.last lineend"
+
+        )
+
+    except:
+
+        return
+
+    lines = textbox.get(
+
+        start,
+
+        end
+
+    ).split("\n")
+
+    new_lines = []
+
+    for line in lines:
+
+        if line.strip().startswith("#"):
+
+            idx = line.find("#")
+
+            line = line[:idx] + line[idx+1:]
+
+        else:
+
+            line = "#" + line
+
+        new_lines.append(line)
+
+    textbox.delete(
+
+        start,
+
+        end
+
+    )
+
+    textbox.insert(
+
+        start,
+
+        "\n".join(new_lines)
+
+    )
+
 textbox.bind(
 
-    "<Control-S>",
+    "<Control-slash>",
 
-    savefile
+    toggle_comment
 
 )
 
 # ==========================================
-# PROCESS VARIABLE
-# ==========================================
-
-process = None
-
-# ==========================================
-# READ LIVE OUTPUT
+# RUN PROGRAM
 # ==========================================
 
 def read_output():
@@ -376,23 +721,20 @@ def read_output():
 
         output = process.stdout.readline()
 
-        if (
-
-            output == ""
-
-            and process.poll() is not None
-
-        ):
+        if output == "" and process.poll() is not None:
 
             break
 
         if output:
 
-            write_console(output)
+            console.after(
 
-# ==========================================
-# RUN INSIDE CONSOLE
-# ==========================================
+                0,
+
+                lambda o=output:
+                write_console(o)
+
+            )
 
 def run(e=None):
 
@@ -400,29 +742,11 @@ def run(e=None):
 
     savefile()
 
-    console.configure(
-
-        state="normal"
-
-    )
-
-    console.delete(
-
-        1.0,
-
-        tk.END
-
-    )
-
-    console.configure(
-
-        state="disabled"
-
-    )
+    clear_console()
 
     process = subprocess.Popen(
 
-        ["python", "test002.py"],
+        ["python", "-u", current_file],
 
         stdin=subprocess.PIPE,
 
@@ -444,7 +768,7 @@ def run(e=None):
 
     ).start()
 
-t.bind(
+textbox.bind(
 
     "<Control-F5>",
 
@@ -453,10 +777,10 @@ t.bind(
 )
 
 # ==========================================
-# SEND INPUT TO PYTHON FILE
+# SEND INPUT
 # ==========================================
 
-def send_input(e):
+def send_input(e=None):
 
     global process
 
@@ -474,11 +798,7 @@ def send_input(e):
 
         write_console(
 
-            ">>> " +
-
-            command +
-
-            "\n"
+            command + "\n"
 
         )
 
@@ -499,7 +819,7 @@ inputbox.bind(
 )
 
 # ==========================================
-# OPEN CMD TERMINAL
+# TERMINAL WINDOW
 # ==========================================
 
 def open_terminal(e=None):
@@ -508,11 +828,11 @@ def open_terminal(e=None):
 
     os.system(
 
-        "start cmd /k python test002.py"
+        f"start cmd /k python {current_file}"
 
     )
 
-t.bind(
+textbox.bind(
 
     "<F5>",
 
@@ -521,17 +841,149 @@ t.bind(
 )
 
 # ==========================================
-# DEFAULT SAMPLE CODE
+# FONT ZOOM
+# ==========================================
+
+def zoom_in(e=None):
+
+    global fontsize
+
+    fontsize += 1
+
+    textbox.config(
+
+        font=(
+
+            "Consolas",
+
+            fontsize
+
+        )
+
+    )
+
+    linenumbers.config(
+
+        font=(
+
+            "Consolas",
+
+            fontsize
+
+        )
+
+    )
+
+textbox.bind(
+
+    "<Control-equal>",
+
+    zoom_in
+
+)
+
+def zoom_out(e=None):
+
+    global fontsize
+
+    if fontsize > 10:
+
+        fontsize -= 1
+
+    textbox.config(
+
+        font=(
+
+            "Consolas",
+
+            fontsize
+
+        )
+
+    )
+
+    linenumbers.config(
+
+        font=(
+
+            "Consolas",
+
+            fontsize
+
+        )
+
+    )
+
+textbox.bind(
+
+    "<Control-minus>",
+
+    zoom_out
+
+)
+
+# ==========================================
+# BUTTONS
+# ==========================================
+def nullfx():
+    pass
+buttons = [
+    ("PYSPACE", nullfx, "white"),
+
+    ("📂 OPEN", open_file, "#2563eb"),
+
+    ("⬇ EXPORT", export_file, "#9333ea"),
+
+    ("🗑 CLEAR", clear_console, "#ef4444"),
+
+    ("# COMMENT", toggle_comment, "#facc15"),
+
+    ("💾 SAVE", savefile, "#22c55e"),
+
+    ("▶ RUN", run, "#00ffff")
+    
+
+]
+
+for text, cmd, color in buttons:
+
+    btn = tk.Button(
+
+        topbar,
+
+        text=text,
+
+        command=cmd,
+
+        font=("Consolas", 11, "bold"),
+
+        bg=color,
+
+        fg="black",
+
+        relief="flat",
+
+        cursor="hand2",
+        width="24"
+
+    )
+
+    btn.pack(
+
+        side="left",
+
+        padx=10,
+
+        pady=5
+
+    )
+
+# ==========================================
+# SAMPLE CODE
 # ==========================================
 
 sample = '''
-name = input("Enter name : ")
-
-print("Hello", name)
-
-for i in range(5):
-
-    print("Number :", i)
+print("Hello World !")
 '''
 
 textbox.insert(
@@ -542,8 +994,10 @@ textbox.insert(
 
 )
 
+update_lines()
+
 # ==========================================
-# START APP
+# START
 # ==========================================
 
 t.mainloop()
